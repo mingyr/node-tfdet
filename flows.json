@@ -1,1 +1,320 @@
-[]
+[
+    {
+        "id": "20fefcd1f7dfccb2",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5f0baba38360b9bd",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "221cc547929cc120",
+        "type": "tf-model",
+        "z": "20fefcd1f7dfccb2",
+        "modelURL": "https://storage.googleapis.com/tfjs-models/savedmodel/ssdlite_mobilenet_v2/model.json",
+        "outputNode": "",
+        "name": "COCO SSD lite",
+        "x": 380,
+        "y": 340,
+        "wires": [
+            [
+                "e9ec33479da844d2"
+            ]
+        ]
+    },
+    {
+        "id": "5e8146b4fbb2088f",
+        "type": "tf-function",
+        "z": "20fefcd1f7dfccb2",
+        "name": "tf-function 1",
+        "func": "const image = tf.tidy(() => {\n    return tf.node.decodeImage(msg.payload, 3).expandDims(0);\n});\n\nreturn { payload: { image_tensor: image } };\n",
+        "outputs": 1,
+        "noerr": 2,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "221cc547929cc120"
+            ]
+        ]
+    },
+    {
+        "id": "e9ec33479da844d2",
+        "type": "post-object-detection",
+        "z": "20fefcd1f7dfccb2",
+        "classesURL": "https://raw.githubusercontent.com/yhwang/node-red-contrib-tf-model/master/examples/object-detection/classes.json",
+        "iou": "0.5",
+        "minScore": "0.5",
+        "name": "",
+        "x": 400,
+        "y": 460,
+        "wires": [
+            [
+                "4e7360abefdb2f02"
+            ]
+        ]
+    },
+    {
+        "id": "d524f5a203ea4515",
+        "type": "bbox-image",
+        "z": "20fefcd1f7dfccb2",
+        "strokeWidth": "2",
+        "fontSize": "10",
+        "objectsProp": "objects",
+        "objectsPropType": "msgPayload",
+        "imageProp": "image",
+        "imagePropType": "msgPayload",
+        "name": "",
+        "x": 890,
+        "y": 380,
+        "wires": [
+            [
+                "0220a3c6a3d08b51"
+            ]
+        ]
+    },
+    {
+        "id": "0220a3c6a3d08b51",
+        "type": "image",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "width": 160,
+        "data": "payload",
+        "dataType": "msg",
+        "thumbnail": false,
+        "active": true,
+        "pass": false,
+        "outputs": 0,
+        "x": 1080,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "e9870f3dd78f0602",
+        "type": "change",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "image",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 610,
+        "y": 220,
+        "wires": [
+            [
+                "d144db7ffd6b2efc"
+            ]
+        ]
+    },
+    {
+        "id": "4e7360abefdb2f02",
+        "type": "change",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "topic",
+                "pt": "msg",
+                "to": "objects",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 610,
+        "y": 380,
+        "wires": [
+            [
+                "d144db7ffd6b2efc",
+                "8482a5aa57cfe887",
+                "32f6d181729691a7"
+            ]
+        ]
+    },
+    {
+        "id": "d144db7ffd6b2efc",
+        "type": "join",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "mode": "custom",
+        "build": "object",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 750,
+        "y": 300,
+        "wires": [
+            [
+                "d524f5a203ea4515"
+            ]
+        ]
+    },
+    {
+        "id": "414a8f9518330247",
+        "type": "image",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "width": 160,
+        "data": "payload",
+        "dataType": "msg",
+        "thumbnail": false,
+        "active": true,
+        "pass": false,
+        "outputs": 0,
+        "x": 1080,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "3098acb5075a3dd3",
+        "type": "mqtt in",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "topic": "image",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "5f0baba38360b9bd",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 370,
+        "y": 100,
+        "wires": [
+            [
+                "414a8f9518330247",
+                "e9870f3dd78f0602",
+                "5e8146b4fbb2088f"
+            ]
+        ]
+    },
+    {
+        "id": "32f6d181729691a7",
+        "type": "debug",
+        "z": "20fefcd1f7dfccb2",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "6fa0106028c5404b",
+        "type": "mqtt out",
+        "z": "20fefcd1f7dfccb2",
+        "name": "",
+        "topic": "result",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5f0baba38360b9bd",
+        "x": 870,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "8482a5aa57cfe887",
+        "type": "function",
+        "z": "20fefcd1f7dfccb2",
+        "name": "function 1",
+        "func": "msg.topic = \"result\";\nif (msg.payload)\n{\n    var texts = [];\n\n    for (let i = 0; i < msg.payload.length; i ++)\n    {\n        texts.push(msg.payload[i].className);\n    }\n\n    msg.payload = texts.join(\" \");\n    \n}\nelse\n{\n    msg.payload = \"\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 480,
+        "wires": [
+            [
+                "6fa0106028c5404b",
+                "128e17046dc37a48"
+            ]
+        ]
+    },
+    {
+        "id": "128e17046dc37a48",
+        "type": "debug",
+        "z": "20fefcd1f7dfccb2",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1080,
+        "y": 560,
+        "wires": []
+    }
+]
